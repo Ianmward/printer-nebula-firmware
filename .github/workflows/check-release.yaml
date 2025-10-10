@@ -21,6 +21,7 @@ jobs:
     - name: Check firmware version
       id: check_version
       run: |
+        python -m pip install -r requirements.txt
         output=$(python get-version.py)
         version=$(echo "$output" | sed -n '1p')
         url=$(echo "$output" | sed -n '2p')
