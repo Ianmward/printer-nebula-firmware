@@ -1,29 +1,47 @@
 from bs4 import BeautifulSoup
 import requests
 import re
+from urllib.parse import urljoin
 
-url = "https://www.creality.com/pages/download-creality-nebula-smart-kit"
-firmware_link_re = re.compile(r"https://file2-cdn\.creality\.com/file/[A-Za-z0-9]+/NEBULA_ota_img_V(\d+\.\d+\.\d+\.\d+)\.img")
+url = "https://www.creality.com/download/creality-nebula-smart-kit"
+firmware_link_re = re.compile(
+    r"https://file2-cdn\.creality\.com/file/[A-Za-z0-9]+/NEBULA_ota_img_V(\d+\.\d+\.\d+\.\d+)\.img"
+)
 
-req = requests.get(url)
-soup = BeautifulSoup(req.content, "html.parser")
+session = requests.Session()
+resp = requests.get(url)
+soup = BeautifulSoup(resp.text, "html.parser")
 
-tags = soup.find_all('a')
+firmware_versions = {}
 
-links = []
-for tag in tags:
-    if not tag.get('href'):
-        continue
-    links.append(tag['href'])
 
-firmware_links = [
-    m.group(1)
-    for link in links
-    if (m := firmware_link_re.match(link))
-]
+def find_links_in_text(text):
+    for match in firmware_link_re.finditer(text):
+        ver = match.group(1)
+        firmware_versions[ver] = match.group(0)
 
-if not firmware_links:
+
+for tag in soup.find_all("a", href=True):
+    m = firmware_link_re.match(tag["href"])
+    if m:
+        firmware_versions[m.group(1)] = m.group(0)
+
+for script in soup.find_all("script"):
+    if script.string:
+        find_links_in_text(script.string)
+
+for script in soup.find_all("script", src=True):
+    js_url = urljoin(url, script["src"])
+    try:
+        r = session.get(js_url, timeout=10)
+        if r.ok:
+            find_links_in_text(r.text)
+    except requests.RequestException:
+        pass
+
+if not firmware_versions:
     print("Error: No firmware links found.")
     exit(1)
 
-print(sorted(firmware_links)[-1])
+latest_ver = sorted(firmware_versions.keys())[-1]
+print(latest_ver)
