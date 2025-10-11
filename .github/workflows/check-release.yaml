@@ -25,8 +25,8 @@ jobs:
         output=$(python get-version.py)
         VERSION=$(echo "$output" | sed -n '1p')
         URL=$(echo "$output" | sed -n '2p')
-        echo "version=$VERSION" >> $GITHUB_ENV
-        echo "url=$URL" >> $GITHUB_ENV
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "url=$URL" >> $GITHUB_OUTPUT
         
         echo "Found version: $VERSION"
         echo "With url: $URL"
