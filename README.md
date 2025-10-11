@@ -5,29 +5,41 @@
 This project automates fetching the latest Creality Nebula firmware, rooting it, and repacking it into a new image.
 
 ## Overview
-`create.sh` downloads the official Creality Nebula firmware, extracts it, and repacks a rooted version with the following modifications:
+![create.sh](create.sh) downloads the official Creality Nebula firmware, extracts it, and repacks a rooted version with the following modifications:
 - Enables ssh/root access and injects a new root password
-- Adds the `/root/installer.sh` script that installs and runs the ![Creality Helper Script](https://github.com/Guilouz/Creality-Helper-Script) for installing Klipper, SimplyPrint, and other related tools.
+- Adds the ![installer.sh](root/installer.sh) script to `/root` which installs and runs the ![Creality Helper Script](https://github.com/Guilouz/Creality-Helper-Script) for installing Klipper, SimplyPrint, and other related tools.
 - Adds a factory reset option by checking if a file named `factory_reset` exists on the USB stick
 
-## Firmware installation
+## Firmware and Klipper installation
 1. Download the latest `NEBULA_ota_img_V6.*.img` file from the ![latest release](https://github.com/SimplyPrint/printer-nebula-firmware/releases/latest)
 2. Transfer it to the USB stick that came with the Nebula
 3. Insert it into the Nebula and press the ***Upgrade*** button, once the firmware upgrade pop-up appears, and wait for the installation to finish
-4. Go into ***Settings*** -> ***Network*** and find the Nebula's IP address
-5. Connect to the Nebula over ssh (default: `root@creality`)
-6. Run the installer script by running `./installer.sh`
-7. Choose `1) [Install] Menu` once the script has launched and install the following:
+
+<p align="center">
+    <img height="375" alt="Nebula screen with upgrade pop-up" src="docs/Nebula_upgrade-popup.png" />
+</p>
+
+4. Go to ***Settings*** -> ***Network*** on the Nebula, and find it´s IP address
+
+<p align="center">
+    <img height="375" alt="Nebula screen with settings button" src="docs/Nebula_default-screen.png" />
+    <img height="375" alt="Nebula screen with network button" src="docs/Nebula_settings-page.png" />
+    <img height="375" alt="Nebula screen with network SSID and IP" src="docs/Nebula_network-tab.png" />
+</p>
+
+5. Connect to the Nebula over ssh with it´s IP address and the user `root` with the password `creality`
+6. Run the Creality Helper Script by running `./installer.sh`
+7. Choose `1) [Install] Menu` once the script has launched, and install the following:
     - `1) Moonraker and Nginx`
     - `2) Fluidd (port 4408)` or `3) Mainsail (port 4409)`
     - `5) Klipper Gcode Shell Command`
     - `10) Nebula Camera Settings Control`
     - `11) USB Camera Support`
     - `17) SimplyPrint`
-8. Enable the webcam for moonraker by navigating to `5) [Tools] Menu` in the main menu, and choose `3) Enable camera settings in Moonraker`
-9. Open a browser and navigate to `http://[YOUR IP]:[Fluidd/Mainsail port]`, fx. `http://192.168.0.42:4409`, to open the Mainsail or Fluidd instance
+8. Enable the Nebula camera by navigating to `5) [Tools] Menu` in the main menu, and choose `3) Enable camera settings in Moonraker`
+9. Open a browser and navigate to `http://[YOUR IP]:[Fluidd/Mainsail port]`, e.g. `http://192.168.0.42:4409`, to open the Mainsail or Fluidd instance
 
-### Factory reset
+### Factory resetting
 > [!WARNING]
 > Performing a factory reset will permanently delete all user-installed software, custom configurations, and most stored data.
 > Only your Wi-Fi settings, printer identity, and essential system configuration files will be preserved.
