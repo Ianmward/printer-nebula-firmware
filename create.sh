@@ -61,18 +61,49 @@ function update_rootfs() {
     sudo chown "$USER" rootfs.squashfs
 }
 
-old_image_name=$(basename "$DOWNLOAD_URL")
+download_name=$(basename "$DOWNLOAD_URL")
+download_path="/tmp/$download_name"
+
+if [ ! -f "$download_path" ]; then
+    echo "Downloading ${DOWNLOAD_URL} -> $download_path ..."
+    wget "${DOWNLOAD_URL}" -O "$download_path"
+fi
+
+case "$download_name" in
+    *.zip)
+        echo "ZIP firmware detected, extracting..."
+
+        unzip_dir="/tmp/${BOARD_SHORT_NAME}_firmware"
+        rm -rf "$unzip_dir"
+        mkdir -p "$unzip_dir"
+
+        7z x "$download_path" -o"$unzip_dir" -y
+
+        img_file=$(find "$unzip_dir" -maxdepth 1 -type f -name "*.img" | head -n 1)
+
+        if [ -z "$img_file" ]; then
+            echo "No .img found inside ZIP"
+            exit 1
+        fi
+
+        old_image_name=$(basename "$img_file")
+        cp "$img_file" "/tmp/$old_image_name"
+        ;;
+    *.img)
+        old_image_name="$download_name"
+        ;;
+    *)
+        echo "Unsupported firmware format: $download_name"
+        exit 1
+        ;;
+esac
+
 board_name=$(echo "$old_image_name" | grep -o '^[^_]*')
 old_directory="${board_name}_ota_img_V${CREALITY_VERSION}"
 old_sub_directory="ota_v${CREALITY_VERSION}"
 directory="${board_name}_ota_img_V${version}"
 sub_directory="ota_v${version}"
 image_name="${board_name}_ota_img_V${version}".img
-
-if [ ! -f "/tmp/$old_image_name" ]; then
-    echo "Downloading ${DOWNLOAD_URL} -> /tmp/$old_image_name ..."
-    wget "${DOWNLOAD_URL}" -O "/tmp/$old_image_name"
-fi
 
 if [ -d "/tmp/$old_directory" ]; then
     rm -rf "/tmp/$old_directory"
